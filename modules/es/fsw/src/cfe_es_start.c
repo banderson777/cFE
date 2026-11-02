@@ -1,3 +1,4 @@
+/* Local integration modifications (banderson777, 2026); see LOCAL_CHANGES.md. */
 /************************************************************************
  * NASA Docket No. GSC-19,200-1, and identified as "cFS Draco"
  *
@@ -40,6 +41,7 @@
 #include "target_config.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static int32 CFE_ES_MainTaskSyncDelay(uint32 AppStateId, uint32 TimeOutMilliseconds);
@@ -59,6 +61,12 @@ static int32 CFE_ES_MainTaskSyncDelay(uint32 AppStateId, uint32 TimeOutMilliseco
 ** Global data for the ES startup code and Runtime library
 */
 CFE_ES_Global_t CFE_ES_Global;
+
+static const char *CFE_ES_GetRamMountPoint(void)
+{
+    const char *value = getenv("CFE_RAM_MOUNT");
+    return value != NULL && value[0] == '/' && value[1] != '\0' ? value : CFE_PLATFORM_ES_RAM_DISK_MOUNT_STRING;
+}
 
 /***************************************************************************/
 /*
@@ -578,7 +586,7 @@ void CFE_ES_InitializeFileSystems(uint32 StartType)
     /*
     ** Now, mount the RAM disk
     */
-    OsStatus = OS_mount("/ramdev0", CFE_PLATFORM_ES_RAM_DISK_MOUNT_STRING);
+    OsStatus = OS_mount("/ramdev0", CFE_ES_GetRamMountPoint());
     if (OsStatus != OS_SUCCESS)
     {
         CFE_ES_WriteToSysLog("%s: Error Mounting Volatile(RAM) Volume. EC = %ld\n", __func__, (long)OsStatus);
@@ -605,7 +613,7 @@ void CFE_ES_InitializeFileSystems(uint32 StartType)
         /*
         ** See how many blocks are free in the RAM disk
         */
-        OsStatus = OS_FileSysStatVolume(CFE_PLATFORM_ES_RAM_DISK_MOUNT_STRING, &StatBuf);
+        OsStatus = OS_FileSysStatVolume(CFE_ES_GetRamMountPoint(), &StatBuf);
         if (OsStatus == OS_SUCCESS && StatBuf.total_blocks > 0)
         {
             /*
@@ -621,7 +629,7 @@ void CFE_ES_InitializeFileSystems(uint32 StartType)
                 /*
                 ** First, unmount the disk
                 */
-                OsStatus = OS_unmount(CFE_PLATFORM_ES_RAM_DISK_MOUNT_STRING);
+                OsStatus = OS_unmount(CFE_ES_GetRamMountPoint());
                 if (OsStatus == OS_SUCCESS)
                 {
                     /*
@@ -643,7 +651,7 @@ void CFE_ES_InitializeFileSystems(uint32 StartType)
                             /*
                             ** Last, remount the disk
                             */
-                            OsStatus = OS_mount("/ramdev0", CFE_PLATFORM_ES_RAM_DISK_MOUNT_STRING);
+                            OsStatus = OS_mount("/ramdev0", CFE_ES_GetRamMountPoint());
                             if (OsStatus != OS_SUCCESS)
                             {
                                 CFE_ES_WriteToSysLog("%s: Error Re-Mounting Volatile(RAM) Volume. EC = %ld\n",
