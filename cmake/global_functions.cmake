@@ -149,6 +149,8 @@ function(generate_c_headerfile FILE_NAME)
     string(REPLACE ";" "" GENERATED_FILE_CONTENT "${ARGN}")
     string(REPLACE ";" "" GENERATED_FILE_HEADER "${GENERATED_FILE_HEADER}")
     string(REPLACE ";" "" GENERATED_FILE_TRAILER "${GENERATED_FILE_TRAILER}")
+    get_filename_component(FILE_DIRECTORY "${FILE_NAME}" DIRECTORY)
+    file(MAKE_DIRECTORY "${FILE_DIRECTORY}")
     configure_file(
         "${CFE_SOURCE_DIR}/cmake/cfe_generated_file.h.in"
         "${FILE_NAME}"
