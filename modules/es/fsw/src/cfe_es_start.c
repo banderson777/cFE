@@ -62,6 +62,8 @@ static int32 CFE_ES_MainTaskSyncDelay(uint32 AppStateId, uint32 TimeOutMilliseco
 */
 CFE_ES_Global_t CFE_ES_Global;
 
+/** Return a borrowed RAM mount path. Accept a nonempty absolute CFE_RAM_MOUNT override for
+ * isolated native hosts; otherwise use the platform default. */
 static const char *CFE_ES_GetRamMountPoint(void)
 {
     const char *value = getenv("CFE_RAM_MOUNT");
